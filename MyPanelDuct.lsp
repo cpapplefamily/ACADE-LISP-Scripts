@@ -65,7 +65,7 @@ Initial Release
 ;= Restore System Variables ====================================================================================================================================
   
   (c:wd_modattrval LastEntity "DESC1" Catalog nil)                           ; Modify the attribute value of DESC1 to "newval" (you can change this to any value you want)
-  (c:wd_modattrval LastEntity "DESC2" (rtos len 2 2) nil)                           ; Modify the attribute value of DESC1 to "newval" (you can change this to any value you want)
+  (c:wd_modattrval LastEntity "DESC2" (strcat (rtos len 2 2) "\"" ) nil)                           ; Modify the attribute value of DESC1 to "newval" (you can change this to any value you want)
   
 ;= Restore System Variables ====================================================================================================================================
   
