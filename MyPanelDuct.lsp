@@ -40,11 +40,38 @@ Initial Release
   
 ;= Insert Din Rail =============================================================================================================================================
 
-  (setq par1 pt1)                                                             ; Base Point
-  (setq par2 len)                                                             ; Length
-  (setq par3 "H")                                                             ; Orientation, horiz or vertical insert "H" or "V"
+  (setq par2 len)                                                             ; Length                                                            
+  (setq par3 (cond                                                            ; Orientation, horiz or vertical insert "H" or "V"
+    ((or (< (abs ang) 1e-6) (< (abs (- ang pi)) 1e-6)) "H")                     ; Horizontal if angle ≈ 0 or π
+    ((or (< (abs (- ang (/ pi 2))) 1e-6) (< (abs (+ ang (/ pi 2))) 1e-6)) "V")  ; Vertical if angle ≈ π/2 or -π/2
+    (T "H")                                                                   ; Default to Horizontal
+  ))
   (setq par4 1.0)                                                             ; Scale, nil = 1.0
   (setq par5 3)                                                               ; Panel Mounting, 1 = holes, 2 = stand-offs, 3 = none
+  
+  (setq par1 pt1)                                                             ; Base Point
+  (cond
+    ((equal par3 "H")
+      (if (> (car pt1) (car pt2))
+        (progn
+          (setq par1 pt2)
+          (setq pt2 pt1)
+          (setq pt1 par1)
+        )
+      )
+    )
+    ((equal par3 "V")
+      (if (> (cadr pt1) (cadr pt2))
+        (progn
+          (setq par1 pt2)
+          
+          (setq pt2 pt1)
+          (setq pt1 par1)
+        )
+      )
+    )
+  )
+  
   (setq parameters (list par1 par2 par3 par4 par5))                           ; Generate parameters list
   
   (print (strcat "Inserting Din Rail with parameters: " Manufacturer ", " Catalog ", " Assycode)) ; Print parameters for debugging()
@@ -54,13 +81,13 @@ Initial Release
 ;= Rotate Din Rail =============================================================================================================================================
   
   (setq LastEntity (entlast))                                                 ; Get the last drawn entity that was drawn by ace_ins_dinrail command
-  (setq EntData (entget LastEntity))                                          ; Get the entity data
+ ;|  (setq EntData (entget LastEntity))                                          ; Get the entity data
   
   (setq EntData (subst (cons 50 ang) (assoc 50 EntData) EntData))             ; Change rotation using radian value calculated from user specified points
   
   (entmod EntData)                                                            ; Apply changes
   (entupd LastEntity)                                                         ; Update entity
-
+ |;
   
 ;= Restore System Variables ====================================================================================================================================
   
