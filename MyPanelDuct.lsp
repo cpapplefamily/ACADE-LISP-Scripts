@@ -1,13 +1,14 @@
 ;| ====================================================================================================================================================================
 
-DinRail.lsp
+MyPanelDuct.lsp
 
 This program automates use of AutoCAD Electrical's Insert Din rail command with user presets.
 
-Environment: AutoCAD 2025
-Author: Arshdeep Singh
+Environment: AutoCAD 2023
+Author: Corey Applegate
+Based off the work From: Arshdeep Singh
 
-Version 1.0 - July 27, 2024
+Version 1.0 - May 30, 2025
 Initial Release
 
 ====================================================================================================================================================================|;
@@ -37,6 +38,19 @@ Initial Release
   (setq ang (atan dy dx))                                                     ; Calculate angle in radians
   (setq len (distance pt1 pt2))                                               ; Calculate length
   
+  ; Print dx, dy, angle, and length for debugging
+  (print (strcat "dx: " (rtos dx 2 2) ", dy: " (rtos dy 2 2) ", ang: " (rtos ang 2 2) ", len: " (rtos len 2 2))) 
+  
+  ; Ask user for manual length entry
+  (initget 6)                                                                
+  ; Allow user to enter a value or pick a point
+  (setq manualLen (getdist pt1 (strcat "\nEnter length or Use picked <" (rtos len 2 2) "\">:"))) 
+  
+  ; Calculate length
+  (if manualLen
+    (setq len manualLen)                                                      ; Use manual entry if provided
+     (setq len (distance pt1 pt2))                                            ; Otherwise, use distance between points
+  )
   
 ;= Insert Din Rail =============================================================================================================================================
 
@@ -49,6 +63,7 @@ Initial Release
   (setq par4 1.0)                                                             ; Scale, nil = 1.0
   (setq par5 3)                                                               ; Panel Mounting, 1 = holes, 2 = stand-offs, 3 = none
   
+  ; Flip the points if necessary based on orientation and start point
   (setq par1 pt1)                                                             ; Base Point
   (cond
     ((equal par3 "H")
@@ -74,14 +89,16 @@ Initial Release
   
   (setq parameters (list par1 par2 par3 par4 par5))                           ; Generate parameters list
   
-  (print (strcat "Inserting Din Rail with parameters: " Manufacturer ", " Catalog ", " Assycode)) ; Print parameters for debugging()
+  ; Print parameters for debugging()
+  (print (strcat "Inserting Din Rail with parameters: " Manufacturer ", " Catalog ", " Assycode)) 
 
   (c:ace_ins_dinrail Manufacturer Catalog Assycode parameters)                      ; Run AutoCAD Electrical's ace_ins_dinrail command
   
 ;= Rotate Din Rail =============================================================================================================================================
-  
+ 
+  ;|  ;Part Must be horizontally or Vertically aligned. Logic above will ensure that.
   (setq LastEntity (entlast))                                                 ; Get the last drawn entity that was drawn by ace_ins_dinrail command
- ;|  (setq EntData (entget LastEntity))                                          ; Get the entity data
+  (setq EntData (entget LastEntity))                                          ; Get the entity data
   
   (setq EntData (subst (cons 50 ang) (assoc 50 EntData) EntData))             ; Change rotation using radian value calculated from user specified points
   
@@ -89,8 +106,9 @@ Initial Release
   (entupd LastEntity)                                                         ; Update entity
  |;
   
-;= Restore System Variables ====================================================================================================================================
+;= Set Description Variables ====================================================================================================================================
   
+  (setq LastEntity (entlast))                                                 ; Get the last drawn entity that was drawn by ace_ins_dinrail command
   (c:wd_modattrval LastEntity "DESC1" Catalog nil)                           ; Modify the attribute value of DESC1 to "newval" (you can change this to any value you want)
   (c:wd_modattrval LastEntity "DESC2" (strcat (rtos len 2 2) "\"" ) nil)                           ; Modify the attribute value of DESC1 to "newval" (you can change this to any value you want)
   
@@ -101,6 +119,6 @@ Initial Release
   
 )
 
-(princ "Type \"MyPanelDuct\" in command prompt to run the lisp.")
+(princ "Type \"(MyPanelDuct Manufacturer Catalog Assycode)\" in command prompt to run the lisp.")
 
 ;END OF THE PROGRAM
