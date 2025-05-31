@@ -111,12 +111,42 @@ Initial Release
   (setq LastEntity (entlast))                                                 ; Get the last drawn entity that was drawn by ace_ins_dinrail command
   (c:wd_modattrval LastEntity "DESC1" Catalog nil)                           ; Modify the attribute value of DESC1 to "newval" (you can change this to any value you want)
   (c:wd_modattrval LastEntity "DESC2" (strcat (rtos len 2 2) "\"" ) nil)                           ; Modify the attribute value of DESC1 to "newval" (you can change this to any value you want)
-  
+  (if (equal par3 "V")
+    (rotateAtts LastEntity); Rotate the attributes of the last entity drawn by ace_ins_dinrail command
+  )                                              
 ;= Restore System Variables ====================================================================================================================================
   
   (setvar "ORTHOMODE" OldOrthomode)                                           ; Restore the original ORTHOMODE
   (princ)                                                                     ; Exit quietly
   
+)
+
+(defun rotateAtts (ent / ent ename angle blkRef atts att)
+  (if ent
+    (progn
+      (setq ename ent)
+      (setq blkRef (vlax-ename->vla-object ename))
+      (if (and (eq (vla-get-HasAttributes blkRef) :vlax-true)
+               (setq angle 90))
+        (progn
+          (setq angle (degrees-to-radians angle))
+          (setq atts (vlax-invoke blkRef 'GetAttributes))
+          (foreach att atts
+            (princ (strcat "\nRotating attribute: " (vla-get-TagString att)))
+            (vla-put-Rotation att angle)
+          )
+          (vla-update blkRef)
+          (princ "\nAttributes rotated successfully.")
+        )
+        (prompt "\nSelected block has no attributes or invalid input.")
+      )
+    )
+    (prompt "\nNothing selected.")
+  )
+)
+
+(defun degrees-to-radians (deg)
+  (* pi (/ deg 180.0))
 )
 
 (princ "Type \"(MyPanelDuct Manufacturer Catalog Assycode)\" in command prompt to run the lisp.")
