@@ -10,6 +10,27 @@ This AutoLISP script automates the insertion of DIN rails in AutoCAD Electrical 
 - Cleans up temporary drawing aids
 - Sets rail attributes and updates descriptions
 
+## Install
+
+- Locate your wd_ptag_addattr_comp.dwg
+    - Copy the DESC1 attribute and paste a new Copy
+    - Rename this attribute DESC2 for the second line of text to display on the componet
+- Locate your wddinrl.xls file. This fill contains all your different din and wire duct profiles
+    - Make note of the values in columns [MFG, CAT, ASSYCODE] 
+        *Be sure there are values in each column for each part. Us NA if empty. In early testing I had to send a value. Using "" did not work
+- Install lisp
+    - Run Command APPLOAD
+    - In popup under Startup Suite select [Contents]
+    - In Startup Suite browse to file and add MyPanelDuct.lsp to the list
+    - Restart Acade and the new function should be active
+- Create short cuts to use this new tool
+    - run command CUI
+    - Locatcate the Shortcut Menu you wish to add these fuction to. I suggest selecting the [Default Menu] under the [acad.cuix]
+    - Drag a Command Line object up from the list at the bottom {BLUE HIGHLIGHT} and edit the macro with the following. With parentesies and quotations
+    - (myPANELDUCT "MFG" "CAT" "ASSYCODE") 
+    ![alt text](image-1.png)
+- Now you should be able to click anywhare on your sheet and add the componet. ![alt text](image.png)
+
 ## Usage
 
 1. Load `MyPanelDuct.lsp` in AutoCAD.
