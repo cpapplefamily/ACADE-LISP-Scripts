@@ -121,15 +121,17 @@ Initial Release
   
 )
 
+;= Rotate Attributes =====================================================================================================================================
 (defun rotateAtts (ent / ent ename angle blkRef atts att)
   (if ent
     (progn
-      (setq ename ent)
+      (setq ename ent) ; if the ent is the entire object then we need to get the name of the entity using this (setq ename (car ent))
       (setq blkRef (vlax-ename->vla-object ename))
       (if (and (eq (vla-get-HasAttributes blkRef) :vlax-true)
-               (setq angle 90))
+        (setq angle 90)) ;set static angle to 90 degrees for rotation
+        ;(setq angle (getangle "\nEnter rotation angle in degrees: "))) ; Uncomment this line if you want to prompt for angle. Note this returns the angle in radians.
         (progn
-          (setq angle (degrees-to-radians angle))
+          (setq angle (degrees-to-radians angle)) ; Convert degrees to radians if you are using getangle from input then this is not needed.
           (setq atts (vlax-invoke blkRef 'GetAttributes))
           (foreach att atts
             (princ (strcat "\nRotating attribute: " (vla-get-TagString att)))
@@ -145,10 +147,12 @@ Initial Release
   )
 )
 
+;= Convert Degrees to Radians ==================================================================================================================================
 (defun degrees-to-radians (deg)
   (* pi (/ deg 180.0))
 )
 
+;= after loading the lisp This prints to the Command Window ==================================================================================================================================
 (princ "Type \"(MyPanelDuct Manufacturer Catalog Assycode)\" in command prompt to run the lisp.")
 
 ;END OF THE PROGRAM
