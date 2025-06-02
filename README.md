@@ -26,8 +26,11 @@ This AutoLISP script automates the insertion of DIN rails in AutoCAD Electrical 
 - Create short cuts to use this new tool
     - run command CUI
     - Locatcate the Shortcut Menu you wish to add these fuction to. I suggest selecting the [Default Menu] under the [acad.cuix]
-    - Drag a Command Line object up from the list at the bottom {BLUE HIGHLIGHT} and edit the macro with the following. With parentesies and quotations
+    - In the Command List box search for com to reduce the list length
+    - right click in an open space and create n# of new commands
+    - Name Each Command and add the following. With parentesies and quotations, Optional Add a button image
     - (myPANELDUCT "MFG" "CAT" "ASSYCODE") 
+    - Drag Each New command to the Shortcut Menu you are modifing
     <img src = "Images/image-1.png">
 
 - Now you should be able to click anywhare on your sheet and add the componet. <img src = "Images/image.png">
