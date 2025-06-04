@@ -97,3 +97,131 @@
   (prompt "\nAll done. Use REGEN if changes aren't visible.")
   (princ)
 )
+
+(defun c:InsertXrefSymbol ( / blkName insPt blkDef )
+  (vl-load-com)
+  (setq blkName "ha5s1_ref") ; Block name for the cross-reference symbol
+
+  ;; Check if block is defined in drawing
+  (setq blkDef (tblsearch "BLOCK" blkName))
+  (if (not blkDef)
+    (progn
+      (prompt (strcat "\nBlock \"" blkName "\" not found in drawing."))
+      (prompt "\nMake sure the block is defined or insert it once manually.")
+    )
+    (progn
+      ;; Get insertion point
+      (prompt "\nPick insertion point for stand-alone cross-reference:")
+      (setq insPt (getpoint "\nSpecify insertion point: "))
+      (if insPt
+        (command "_.-INSERT" blkName insPt "1" "1" "0") ; scaleX, scaleY, rotation
+        (prompt "\nNo point selected. Cancelled.")
+      )
+    )
+  )
+  (princ)
+)
+(defun c:InsertXrefSymbol2 ( / blkName insPt blkDef )
+  (vl-load-com)
+
+  (setq blkName "ha5s1_ref") ; Block name for the cross-reference symbol
+  
+  ;; Save current layer
+  (setq oldLayer (getvar "CLAYER"))
+
+  ;; Switch to layer 0
+  (setvar "CLAYER" "0")
+
+  ;; Check if the block is already defined
+  (setq blkDef (tblsearch "BLOCK" blkName))
+
+  ;; If not found, insert from default path
+  (if (not blkDef)
+    (progn
+      (prompt (strcat "\nBlock \"" blkName "\" not found. Attempting to load from default path..."))
+      ;; Attempt to insert from library path (assumes it's in support path)
+      (command "_.-INSERT" blkName "0,0" "1" "1" "0")
+      (setq blkDef (tblsearch "BLOCK" blkName)) ; Check again
+      (if (not blkDef)
+        (progn
+          (prompt (strcat "\nFailed to load block \"" blkName "\". Make sure it's in your support path or symbol library."))
+          (princ)
+          (exit)
+        )
+      )
+    )
+  )
+
+  ;; Ask user for insertion point
+  (prompt "\nPick insertion point for stand-alone cross-reference:")
+  (setq insPt (getpoint "\nSpecify insertion point: "))
+
+  (if insPt
+    (command "_.-INSERT" blkName insPt "1" "1" "0")
+    (prompt "\nNo point selected. Cancelled.")
+  )
+  
+    ;; Restore previous layer
+  (setvar "CLAYER" oldLayer)
+
+  (princ)
+)
+
+(defun c:InsertXrefSymbol3 ( / blkName insPt blkDef oldLayer ent xrefCode entData attList )
+  (vl-load-com)
+
+  (setq blkName "ha5s1_ref")
+
+  ;; Check if block is already in drawing
+  (setq blkDef (tblsearch "BLOCK" blkName))
+  (if (not blkDef)
+    (command "_.-INSERT" blkName "0,0" "1" "1" "0") ; attempt to load block
+  )
+
+  ;; Save current layer and switch to 0
+  (setq oldLayer (getvar "CLAYER"))
+  (setvar "CLAYER" "0")
+
+  ;; Prompt for insertion point
+  (prompt "\nPick insertion point for stand-alone cross-reference:")
+  (setq insPt (getpoint "\nSpecify insertion point: "))
+
+  (if insPt
+    (progn
+      ;; Insert block
+      (command "_.-INSERT" blkName insPt "1" "1" "0")
+      (setq ent (entlast))
+
+      ;; Prompt for cross-reference CODE
+      (setq xrefCode (getstring t "\nEnter cross-reference SIGCODE: "))
+
+      ;; Find and set CODE attribute
+      (if (and ent xrefCode)
+        (progn
+          (setq entData (entnext ent))
+          (while entData
+            (if (= "ATTRIB" (cdr (assoc 0 (entget entData))))
+              (progn
+                (setq attList (entget entData))
+                (if (= (strcase (cdr (assoc 2 attList))) "SIGCODE")
+                  (progn
+                    (setq attList (subst (cons 1 xrefCode) (assoc 1 attList) attList))
+                    (entmod attList)
+                    (entupd entData)
+                  )
+                )
+              )
+            )
+            (setq entData (entnext entData))
+          )
+        )
+      )
+    )
+    (prompt "\nNo point selected. Cancelled.")
+  )
+
+  ;; Restore previous layer
+  (setvar "CLAYER" oldLayer)
+
+  (princ)
+)
