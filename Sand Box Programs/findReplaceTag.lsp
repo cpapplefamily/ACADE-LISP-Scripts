@@ -37,3 +37,63 @@
   )
   (princ)
 )
+
+(defun c:ReplaceAttdefTagsLoop ( / ss i ent tag newtag entData searchStr replaceStr num numWidth exitFlag padded )
+  (vl-load-com)
+
+  ;; Prompt for search pattern
+  (initget 0 "01")
+  (setq searchStr (getstring t "\nEnter search pattern for TAGs [default: *01]: "))
+  (if (= searchStr "") (setq searchStr "*01"))
+
+  ;; Prompt for starting replace string (e.g., 02)
+  (setq replaceStr (getstring t "\nEnter starting replace string (e.g. 02): "))
+  (if (= replaceStr "") (setq replaceStr "02"))
+
+  ;; Extract numeric part and width for zero-padding
+  (setq num (atoi replaceStr))                      ; Start number
+  (setq numWidth (strlen replaceStr))               ; Digits to preserve
+
+  (setq exitFlag nil)
+
+  (while (not exitFlag)
+    ;; Build padded number string
+    (setq padded (rtos num 2 0)) ; Convert to string, no decimal
+    (while (< (strlen padded) numWidth)
+      (setq padded (strcat "0" padded))
+    )
+
+    ;; Prompt user to select ATTDEFs
+    (prompt (strcat "\nSelect ATTDEFs to change " searchStr " → *" padded ": "))
+    (setq ss (ssget '((0 . "ATTDEF"))))
+
+    (if ss
+      (progn
+        (setq i 0)
+        (while (< i (sslength ss))
+          (setq ent (ssname ss i))
+          (setq entData (entget ent))
+          (setq tag (cdr (assoc 2 entData)))
+          (if (and tag (wcmatch tag searchStr))
+            (progn
+              (setq newtag (vl-string-subst padded (substr searchStr 2) tag))
+              (setq entData (subst (cons 2 newtag) (assoc 2 entData) entData))
+              (entmod entData)
+              (princ (strcat "\nChanged TAG: " tag " → " newtag))
+            )
+          )
+          (setq i (1+ i))
+        )
+        ;; Increment number for next pass
+        (setq num (1+ num))
+      )
+      (progn
+        (prompt "\nNothing selected. Exiting loop.")
+        (setq exitFlag T)
+      )
+    )
+  )
+
+  (prompt "\nAll done. Use REGEN if changes aren't visible.")
+  (princ)
+)
